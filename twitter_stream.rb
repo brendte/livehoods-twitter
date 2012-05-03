@@ -1,9 +1,7 @@
 require 'rubygems'
 require 'bundler/setup'
 require 'em-http'
-require 'json'
 require 'em-http/middleware/oauth'
-require 'pp'
 
 # require_relative 'http_connection'
 #require_relative 'em_http_twitter_request'
@@ -26,6 +24,8 @@ class TwitterStream
     :consumer_key     => ENV['TWITTER_KEY'],
     :consumer_secret  => ENV['TWITTER_SECRET'],
     :access_token     => ENV['TWITTER_ACCESS_TOKEN'],
+    # use this to test handling of >200 HTTP status codes
+    #:access_token_secret => 'pqoweiruwqeopiruqwepoiruqweporiuwqeproiuqwe'
     :access_token_secret => ENV['TWITTER_ACCESS_TOKEN_SECRET']
   }
   
@@ -35,12 +35,12 @@ class TwitterStream
     @terms = terms
     @locations = bb_array.join(',')
     @callbacks = []
-    @buffer = ""
+    @buffer = BufferedTokenizer.new("\r")
     @query = { :locations => @locations, :stall_warnings => true }
     unless terms.nil?
       @query[:track => terms]
     end
-    @gracefully_closed = false
+    #@gracefully_closed = false
     @nf_last_reconnect = nil
     @af_last_reconnect = nil
     @reconnect_retries = 0
@@ -64,6 +64,10 @@ class TwitterStream
   def on_max_reconnects(&block)
     @max_reconnects_callback = block
   end
+
+  def on_connect_error(&block)
+    @connect_error_callback = block
+  end
   
   private
   
@@ -75,24 +79,37 @@ class TwitterStream
       :body => @query,
       :inactivity_timeout => 0
     })
-    
-    @http.callback do
-      @disconnect_callback.call if @disconnect_callback
-      schedule_reconnect
-      #EM.stop
+
+    @http.callback do |caller|
+      if [0, 200].include?(caller.response_header.status)
+        @disconnect_callback.call if @disconnect_callback
+        schedule_reconnect
+      else
+        @connect_error_callback.call(caller.response_header.status)
+        EM.stop
+      end
+    end
+
+    @http.errback do |caller|
+      @connect_error_callback.call(caller.response_header.status)
     end
     
     @http.stream do |chunk|
-      @buffer += chunk
-      process_buffer
+      @immediate_reconnect = true if @reconnect_retries == 0
+      process_buffer(chunk)
     end
   end
   
-  def process_buffer
-    while line = @buffer.slice!(/.+\r?\n/)
-      tweet = JSON.parse(line)
-      @callbacks.each { |c| c.call(tweet) }
+  def process_buffer(chunk)
+    @buffer.extract(chunk).each do |line|
+      process_line(line)
     end
+  end
+
+  def process_line(line)
+    line.chomp!
+    line.strip!
+    @callbacks.each { |c| c.call(line) } if line.start_with?('{') && line.end_with?('}')
   end
 
   def schedule_reconnect
@@ -123,7 +140,7 @@ class TwitterStream
       return 0
     end
 
-    if @http.response_header.status == 0 # network failure
+    if [0, 200].include?(@http.response_header.status) # network failure
       if @nf_last_reconnect
         @nf_last_reconnect += NF_RECONNECT_ADD
       else
