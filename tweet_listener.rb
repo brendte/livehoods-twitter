@@ -39,8 +39,8 @@ EM.run do
 
   stream.ontweet do |tweet|
     parsed_tweet = JSON.parse(tweet)
-    puts parsed_tweet
-    #write_to_dynamo(parsed_tweet)
+    #puts parsed_tweet
+    write_to_dynamo(parsed_tweet)
     @count += 1
   end
 
