@@ -4,9 +4,7 @@ require 'aws-sdk'
 
 require_relative 'twitter_stream'
 
-dynamo_db = AWS::DynamoDB.new(:access_key_id => "AKIAJ5ZKPUWCNZT55HJQ", :secret_access_key => "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")
-
-#dynamo_db = AWS::DynamoDB.new(:access_key_id => ENV['S3_ACCESS_KEY_ID'], :secret_access_key => ENV['S3_SECRET_ACCESS_KEY'])
+dynamo_db = AWS::DynamoDB.new(:access_key_id => ENV['S3_ACCESS_KEY_ID'], :secret_access_key => ENV['S3_SECRET_ACCESS_KEY'])
 table = dynamo_db.tables['tweets_philadelphia']
 puts table.inspect
 puts table.exists? ? "there" : "not there"
@@ -40,8 +38,8 @@ EM.run do
   end
 
   stream.ontweet do |tweet|
-    puts tweet
-    #write_to_dynamo(tweet)
+    #puts tweet
+    write_to_dynamo(tweet)
     @count += 1
   end
 
