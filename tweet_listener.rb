@@ -5,19 +5,6 @@ require 'json'
 
 require_relative 'twitter_stream'
 
-#dev
-if ENV['DEV_ENV'] == 'true'
-  @test_file = File.open('tweet_test_file', 'w+')
-#production
-else
-  dynamo_db = AWS::DynamoDB.new(:access_key_id => ENV['S3_ACCESS_KEY_ID'], :secret_access_key => ENV['S3_SECRET_ACCESS_KEY'])
-  table = dynamo_db.tables['tweets_philadelphia']
-  table.hash_key = { :user_id => :number }
-  table.range_key = { :created_at => :number }
-  puts table.schema_loaded?
-  table.load_schema
-end
-
 def tweet_count
   puts "\n>>>>>>>>>>>>>>>>>>>>> TWEET COUNT: #@count <<<<<<<<<<<<<<<<<<<<<<<<<<\n"
 end
@@ -25,6 +12,16 @@ end
 EM.threadpool_size = 10
 
 EM.run do
+
+  ##dev
+  #@test_file = File.open('tweet_test_file', 'w+')
+  #production
+  dynamo_db = AWS::DynamoDB.new(:access_key_id => ENV['S3_ACCESS_KEY_ID'], :secret_access_key => ENV['S3_SECRET_ACCESS_KEY'])
+  table = dynamo_db.tables['tweets_philadelphia']
+  table.hash_key = { :user_id => :number }
+  table.range_key = { :created_at => :number }
+  puts table.schema_loaded?
+  table.load_schema
 
   @count = 0
   philly = [-75.280327,39.864841,-74.941788,40.154541]
