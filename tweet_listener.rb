@@ -98,7 +98,7 @@ EM.run do
 
   EM.add_periodic_timer(60) do
     tweet_count
-    record_count
+    #record_count
   end
 
 end
