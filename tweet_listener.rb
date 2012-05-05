@@ -45,6 +45,7 @@ EM.run do
 
   def build_dynamo_hash(tweet)
     parsed_tweet = JSON.parse(tweet)
+    log_tweet(parsed_tweet)
     {
       :user_id => parsed_tweet['user']['id'].to_i,
       :created_at => Time.parse(parsed_tweet['created_at']).to_i,
@@ -54,6 +55,10 @@ EM.run do
 
   def bump_count
     @count += 1
+  end
+
+  def log_tweet(parsed_tweet)
+    puts "Received tweet with ID: #{parsed_tweet['id']}"
   end
 
   #production
