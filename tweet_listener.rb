@@ -30,6 +30,7 @@ EM.run do
     puts "\n>>>>>>>>>>>>>>>>>>>>> RECORD COUNT: #{@table.items.count} <<<<<<<<<<<<<<<<<<<<<<<<<<\n"
   end
 
+  #prod
   def write_to_dynamo(tweet)
     EM.defer do
       @table.items.create(build_dynamo_hash(tweet))
