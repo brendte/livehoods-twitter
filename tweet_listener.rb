@@ -1,18 +1,22 @@
 require 'rubygems'
 require 'bundler/setup'
 require 'aws-sdk'
+require 'json'
 
 require_relative 'twitter_stream'
 
-dynamo_db = AWS::DynamoDB.new(:access_key_id => ENV['S3_ACCESS_KEY_ID'], :secret_access_key => ENV['S3_SECRET_ACCESS_KEY'])
-table = dynamo_db.tables['tweets_philadelphia']
-puts table.inspect
-puts table.exists? ? "there" : "not there"
-puts table.status
-table.hash_key = { :user_id => :number }
-table.range_key = { :created_at => :number }
-puts table.schema_loaded?
-#table.load_schema
+#dev
+if ENV['DEV_ENV'] == 'true'
+  @test_file = File.open('tweet_test_file', 'w+')
+#production
+else
+  dynamo_db = AWS::DynamoDB.new(:access_key_id => ENV['S3_ACCESS_KEY_ID'], :secret_access_key => ENV['S3_SECRET_ACCESS_KEY'])
+  table = dynamo_db.tables['tweets_philadelphia']
+  table.hash_key = { :user_id => :number }
+  table.range_key = { :created_at => :number }
+  puts table.schema_loaded?
+  table.load_schema
+end
 
 def tweet_count
   puts "\n>>>>>>>>>>>>>>>>>>>>> TWEET COUNT: #@count <<<<<<<<<<<<<<<<<<<<<<<<<<\n"
@@ -28,21 +32,41 @@ EM.run do
 
   def write_to_dynamo(tweet)
     EM.defer do
-      dynamo_hash = {
-          :user_id => tweet[:user][:id],
-          :created_at => tweet[:created_at],
-          :full_tweet => tweet
-      }
-      table.items.create(dynamo_hash)
+      table.items.create(build_dynamo_hash(tweet))
     end
   end
 
-  stream.ontweet do |tweet|
+  def write_to_file(tweet)
+    EM.defer do
+      @test_file.write(build_dynamo_hash(tweet))
+    end
+  end
+
+  def build_dynamo_hash(tweet)
     parsed_tweet = JSON.parse(tweet)
-    #puts parsed_tweet
-    write_to_dynamo(parsed_tweet)
+    {
+      :user_id => parsed_tweet['user']['id'],
+      :created_at => parsed_tweet['created_at'],
+      :full_tweet => tweet
+    }
+  end
+
+  def bump_count
     @count += 1
   end
+
+  #production
+  stream.ontweet do |tweet|
+    write_to_dynamo(tweet)
+    bump_count
+  end
+
+  ##dev
+  #stream.ontweet do |tweet|
+  #  puts tweet
+  #  write_to_file(tweet)
+  #  bump_count
+  #end
 
   stream.on_disconnect do |_, _|
     $stdout.print "\n>>>>>>>>>>>>>>>>>>>>> Disconnected at #{Time.now} <<<<<<<<<<<<<<<<<<<<<<<<<<\n"
