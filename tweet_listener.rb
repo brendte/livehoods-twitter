@@ -6,10 +6,6 @@ require 'time'
 
 require_relative 'twitter_stream'
 
-def tweet_count
-  puts "\n>>>>>>>>>>>>>>>>>>>>> TWEET COUNT: #@count <<<<<<<<<<<<<<<<<<<<<<<<<<\n"
-end
-
 EM.threadpool_size = 10
 
 EM.run do
@@ -25,6 +21,14 @@ EM.run do
   @count = 0
   philly = [-75.280327,39.864841,-74.941788,40.154541]
   stream = TwitterStream.new(philly)
+
+  def tweet_count
+    puts "\n>>>>>>>>>>>>>>>>>>>>> TWEET COUNT: #@count <<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+  end
+
+  def record_count
+    puts "\n>>>>>>>>>>>>>>>>>>>>> RECORD COUNT: #{@table.items.count} <<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+  end
 
   def write_to_dynamo(tweet)
     EM.defer do
@@ -88,6 +92,7 @@ EM.run do
 
   EM.add_periodic_timer(60) do
     tweet_count
+    record_count
   end
 
 end
