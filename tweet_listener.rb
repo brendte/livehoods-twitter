@@ -2,6 +2,7 @@ require 'rubygems'
 require 'bundler/setup'
 require 'aws-sdk'
 require 'json'
+require 'time'
 
 require_relative 'twitter_stream'
 
@@ -41,8 +42,8 @@ EM.run do
   def build_dynamo_hash(tweet)
     parsed_tweet = JSON.parse(tweet)
     {
-      :user_id => parsed_tweet['user']['id'],
-      :created_at => parsed_tweet['created_at'],
+      :user_id => parsed_tweet['user']['id'].to_i,
+      :created_at => Time.parse(parsed_tweet['created_at']).to_i,
       :full_tweet => tweet
     }
   end
