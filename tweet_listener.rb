@@ -16,12 +16,10 @@ EM.run do
   ##dev
   #@test_file = File.open('tweet_test_file', 'w+')
   #production
-  dynamo_db = AWS::DynamoDB.new(:access_key_id => ENV['S3_ACCESS_KEY_ID'], :secret_access_key => ENV['S3_SECRET_ACCESS_KEY'])
-  table = dynamo_db.tables['tweets_philadelphia']
-  table.hash_key = { :user_id => :number }
-  table.range_key = { :created_at => :number }
-  puts table.schema_loaded?
-  table.load_schema
+  @dynamo_db = AWS::DynamoDB.new(:access_key_id => ENV['S3_ACCESS_KEY_ID'], :secret_access_key => ENV['S3_SECRET_ACCESS_KEY'])
+  @table = dynamo_db.tables['tweets_philadelphia']
+  @table.hash_key = { :user_id => :number }
+  @table.range_key = { :created_at => :number }
 
   @count = 0
   philly = [-75.280327,39.864841,-74.941788,40.154541]
@@ -29,15 +27,16 @@ EM.run do
 
   def write_to_dynamo(tweet)
     EM.defer do
-      table.items.create(build_dynamo_hash(tweet))
+      @table.items.create(build_dynamo_hash(tweet))
     end
   end
 
-  def write_to_file(tweet)
-    EM.defer do
-      @test_file.write(build_dynamo_hash(tweet))
-    end
-  end
+  ##dev
+  #def write_to_file(tweet)
+  #  EM.defer do
+  #    @test_file.write(build_dynamo_hash(tweet))
+  #  end
+  #end
 
   def build_dynamo_hash(tweet)
     parsed_tweet = JSON.parse(tweet)
