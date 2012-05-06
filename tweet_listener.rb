@@ -59,7 +59,7 @@ EM.run do
   end
 
   def log_tweet(parsed_tweet)
-    puts "Received tweet with ID: #{parsed_tweet['id']}"
+    puts "#{parsed_tweet['id']}"
   end
 
   #production

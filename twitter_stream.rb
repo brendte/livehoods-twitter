@@ -3,9 +3,6 @@ require 'bundler/setup'
 require 'em-http'
 require 'em-http/middleware/oauth'
 
-# require_relative 'http_connection'
-#require_relative 'em_http_twitter_request'
-
 class TwitterStream
   URL = 'https://stream.twitter.com/1/statuses/filter.json'
   # network failure reconnections
@@ -73,15 +70,15 @@ class TwitterStream
   private
   
   def listen
-    @conn = EM::HttpRequest.new(URL, {:ssl => {:verify_peer => false}})
+    @conn = EM::HttpRequest.new(URL, {:inactivity_timeout => 0, :connect_timeout => 10})
     @conn.use EM::Middleware::OAuth, OAUTHCONFIG
     @http = @conn.post({
       :head => { 'Content-Type' => 'application/x-www-form-urlencoded' },
-      :body => @query,
-      :inactivity_timeout => 0
+      :body => @query
     })
 
     @http.callback do |caller|
+      puts "http dump on callback: #{caller.inspect}"
       if [0, 200].include?(caller.response_header.status)
         @disconnect_callback.call if @disconnect_callback
         schedule_reconnect
