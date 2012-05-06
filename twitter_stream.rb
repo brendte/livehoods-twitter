@@ -45,6 +45,7 @@ class TwitterStream
     @af_last_reconnect = nil
     @reconnect_retries = 0
     @immediate_reconnect = false
+    puts ">> INITIALIZING <<"
     
     listen
   end
