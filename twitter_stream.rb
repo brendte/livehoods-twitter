@@ -73,7 +73,7 @@ class TwitterStream
   private
   
   def listen
-    @conn = EM::HttpRequest.new(URL)
+    @conn = EM::HttpRequest.new(URL, {:ssl => {:verify_peer => false}})
     @conn.use EM::Middleware::OAuth, OAUTHCONFIG
     @http = @conn.post({
       :head => { 'Content-Type' => 'application/x-www-form-urlencoded' },
