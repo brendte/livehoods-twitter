@@ -23,9 +23,9 @@ EM.run do
   #MongoDB
   uri  = 'mongodb://heroku_app4504006:7fbk1h4ipckm6ndagamllfoj1f@ds033217.mongolab.com:33217/heroku_app4504006'
   parsed_uri = URI.parse(uri)
-  @conn = Mongo::Connection.from_uri(uri)
+  @conn = Mongo::Connection.from_uri(uri, :pool_size => 5, :pool_timeout => 5)
   @db = @conn.db(parsed_uri.path.gsub(/^\//, ''))
-
+  @collection = @db.collection('philly_tweets')
   @count = 0
   philly = [-75.280327,39.864841,-74.941788,40.154541]
   stream = TwitterStream.new(philly)
@@ -41,8 +41,7 @@ EM.run do
   #MongoDB
   def write_to_mongo(tweet)
     EM.defer do
-      collection = @db.collection('test')
-      collection.insert(build_dynamo_hash(tweet))
+      @collection.insert(build_dynamo_hash(tweet))
     end
   end
 
