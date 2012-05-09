@@ -1,8 +1,10 @@
 require 'rubygems'
 require 'bundler/setup'
+require 'mongo'
 require 'aws-sdk'
 require 'json'
 require 'time'
+require 'uri'
 
 require_relative 'twitter_stream'
 
@@ -12,11 +14,17 @@ EM.run do
 
   ##dev
   #@test_file = File.open('tweet_test_file', 'w+')
-  #production
-  @dynamo_db = AWS::DynamoDB.new(:access_key_id => ENV['S3_ACCESS_KEY_ID'], :secret_access_key => ENV['S3_SECRET_ACCESS_KEY'])
-  @table = @dynamo_db.tables['tweets_philadelphia']
-  @table.hash_key = { :user_id => :number }
-  @table.range_key = { :created_at => :number }
+  ##production
+  #@dynamo_db = AWS::DynamoDB.new(:access_key_id => ENV['S3_ACCESS_KEY_ID'], :secret_access_key => ENV['S3_SECRET_ACCESS_KEY'])
+  #@table = @dynamo_db.tables['tweets_philadelphia']
+  #@table.hash_key = { :user_id => :number }
+  #@table.range_key = { :created_at => :number }
+
+  #MongoDB
+  uri  = 'mongodb://heroku_app4504006:7fbk1h4ipckm6ndagamllfoj1f@ds033217.mongolab.com:33217/heroku_app4504006'
+  parsed_uri = URI.parse(uri)
+  @conn = Mongo::Connection.from_uri(uri)
+  @db = @conn.db(parsed_uri.path.gsub(/^\//, ''))
 
   @count = 0
   philly = [-75.280327,39.864841,-74.941788,40.154541]
@@ -30,12 +38,20 @@ EM.run do
     puts "\n>>>>>>>>>>>>>>>>>>>>> RECORD COUNT: #{@table.items.count} <<<<<<<<<<<<<<<<<<<<<<<<<<\n"
   end
 
-  #prod
-  def write_to_dynamo(tweet)
+  #MongoDB
+  def write_to_mongo(tweet)
     EM.defer do
-      @table.items.create(build_dynamo_hash(tweet))
+      collection = @db.collection('test')
+      collection.insert(build_dynamo_hash(tweet))
     end
   end
+
+  ##prod
+  #def write_to_dynamo(tweet)
+  #  EM.defer do
+  #    @table.items.create(build_dynamo_hash(tweet))
+  #  end
+  #end
 
   ##dev
   #def write_to_file(tweet)
@@ -62,11 +78,17 @@ EM.run do
     puts "#{parsed_tweet['id']}"
   end
 
-  #production
+  #MongoDB
   stream.ontweet do |tweet|
-    write_to_dynamo(tweet)
+    write_to_mongo(tweet)
     bump_count
   end
+
+  ##production
+  #stream.ontweet do |tweet|
+  #  write_to_dynamo(tweet)
+  #  bump_count
+  #end
 
   ##dev
   #stream.ontweet do |tweet|
