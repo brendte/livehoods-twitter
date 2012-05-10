@@ -1,5 +1,7 @@
 source :rubygems
 
+ruby '1.9.3'
+
 gem 'eventmachine', '>= 1.0.0.beta.4'
 gem 'em-http-request'
 gem 'mongo'
