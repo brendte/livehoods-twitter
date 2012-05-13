@@ -21,7 +21,8 @@ EM.run do
   #@table.range_key = { :created_at => :number }
 
   #MongoDB
-  uri  = 'mongodb://heroku_app4504006:7fbk1h4ipckm6ndagamllfoj1f@ds033217.mongolab.com:33217/heroku_app4504006'
+  ENV['MONGOLAB_URI'] ||= 'mongodb://heroku_app4504006:a9cotq6m6dg4llvm3iut5hglag@ds033157.mongolab.com:33157/heroku_app4504006'
+  uri  = ENV['MONGOLAB_URI']
   parsed_uri = URI.parse(uri)
   @conn = Mongo::Connection.from_uri(uri, :pool_size => 5, :pool_timeout => 5)
   @db = @conn.db(parsed_uri.path.gsub(/^\//, ''))
