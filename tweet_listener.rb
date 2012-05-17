@@ -85,7 +85,7 @@ EM.run do
   end
 
   def log_no_geo(parsed_tweet)
-    puts "Geo is nil: #{log_tweet(parsed_tweet)}"
+    puts "Geo is nil: #{parsed_tweet.inspect}"
   end
 
   #MongoDB
