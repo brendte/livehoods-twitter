@@ -42,7 +42,8 @@ EM.run do
   #MongoDB
   def write_to_mongo(tweet)
     EM.defer do
-      @collection.insert(build_dynamo_hash(tweet))
+      hash_for_mongo = build_dynamo_hash(tweet)
+      @collection.insert(hash_for_mongo) unless hash_for_mongo.nil?
     end
   end
 
@@ -62,12 +63,17 @@ EM.run do
 
   def build_dynamo_hash(tweet)
     parsed_tweet = JSON.parse(tweet)
-    log_tweet(parsed_tweet)
-    {
-      :user_id => parsed_tweet['user']['id'].to_i,
-      :created_at => Time.parse(parsed_tweet['created_at']).to_i,
-      :full_tweet => parsed_tweet
-    }
+    if parsed_tweet['geo'].nil?
+      log_no_geo(parsed_tweet)
+      nil
+    else
+      log_tweet(parsed_tweet)
+      {
+        :user_id => parsed_tweet['user']['id'].to_i,
+        :created_at => Time.parse(parsed_tweet['created_at']).to_i,
+        :full_tweet => parsed_tweet
+      }
+    end
   end
 
   def bump_count
@@ -76,6 +82,10 @@ EM.run do
 
   def log_tweet(parsed_tweet)
     puts "#{parsed_tweet['id']}"
+  end
+
+  def log_no_geo(parsed_tweet)
+    puts "Geo is nil: #{log_tweet(parsed_tweet)}"
   end
 
   #MongoDB
