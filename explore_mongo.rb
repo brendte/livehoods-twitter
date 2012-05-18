@@ -9,7 +9,7 @@ mongo_parsed_uri = URI.parse(mongo_uri)
 conn = Mongo::Connection.from_uri(mongo_uri, :pool_size => 5, :pool_timeout => 5)
 db = conn.db(mongo_parsed_uri.path.gsub(/^\//, ''))
 @mongo_collection = db.collection('philly_tweets_2')
-@mongo_collection_bad = db.collection('philly_tweets')
+@mongo_collection_bad = db.collection('philly_tweets_no_geo')
 
 binding.pry
 
