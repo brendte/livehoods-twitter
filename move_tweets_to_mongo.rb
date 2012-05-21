@@ -1,6 +1,6 @@
 require 'rubygems'
 #require 'bundler/setup'
-require 'mongo'
+require 'mongo_client'
 require 'aws-sdk'
 require 'json'
 require 'uri'

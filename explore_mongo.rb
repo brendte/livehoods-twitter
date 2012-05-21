@@ -11,6 +11,7 @@ db = conn.db(mongo_parsed_uri.path.gsub(/^\//, ''))
 @mongo_collection = db.collection('philly_tweets_2')
 @mongo_collection_bad = db.collection('philly_tweets_no_geo')
 
+
 binding.pry
 
 

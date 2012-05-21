@@ -1,5 +1,5 @@
 require 'uri'
-require 'mongo_client'
+require 'mongo'
 
 class MongoClient
 
