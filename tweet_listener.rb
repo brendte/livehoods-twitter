@@ -26,7 +26,8 @@ EM.run do
   parsed_uri = URI.parse(uri)
   @conn = Mongo::Connection.from_uri(uri, :pool_size => 5, :pool_timeout => 5)
   @db = @conn.db(parsed_uri.path.gsub(/^\//, ''))
-  @collection = @db.collection('philly_tweets_2')
+  @city_name = 'Philadelphia'
+  @collection = @db.collection(@city_name.downcase + '_tweets')
   @count = 0
   philly = [-75.280327,39.864841,-74.941788,40.154541]
   stream = TwitterStream.new(philly)
