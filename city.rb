@@ -10,17 +10,15 @@ philly_tweets = CityTweets.new('Philadelphia')
 #philly_tweets.assign_to_grid_box(philly_grid)
 philly_users = CityUser.new('Philadelphia')
 
-grid_box_map = {}
-
 philly_grid.box_ids_array.each do |box_id|
   checkin_bag_hash = {}
   box_tweets = philly_tweets.user_ids_tweets_in_grid_box(box_id)
   box_tweets.each do |tweet|
     puts tweet
-    checkin_bag_hash[philly_users.all_users_hash[tweet['user_id']]] = checkin_bag_hash[philly_users.all_users_hash[tweet['user_id']]].to_i + 1
+    checkin_bag_hash[philly_users.all_users_hash[tweet['user_id']].to_s] = checkin_bag_hash[philly_users.all_users_hash[tweet['user_id']]].to_i + 1
   end
-  grid_box_map[box_id] = checkin_bag_hash
   puts "Box id: #{box_id} has checkin_bag #{checkin_bag_hash}"
+  philly_grid.update_record({:box_id => box_id}, {'check_in_bag' => checkin_bag_hash})
 end
 
 

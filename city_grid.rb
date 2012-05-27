@@ -12,6 +12,7 @@ class CityGrid
     @sw_lat_deg = @bb[1]
     @sw_lng_deg = @bb[0]
     @mongo_client = MongoClient.new(@city_name.downcase + '_grid').collection
+    #@mongo_client = MongoClient.new('philadelphia_grid_test').collection
   end
 
   class << self
@@ -52,6 +53,10 @@ class CityGrid
 
   def box_ids_array
     @box_ids_array ||= create_box_ids_array
+  end
+
+  def update_record(selector, data)
+    @mongo_client.update(selector, {'$set' => data})
   end
 
   def create_box_ids_array
