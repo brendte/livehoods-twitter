@@ -1,0 +1,6 @@
+.bundle/
+.idea/
+tweet_test_file
+dynamo_dump
+doc/
+ev_poly.txt
